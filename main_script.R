@@ -9,7 +9,7 @@ xml_to_ris <- function(xml_file, ris_file) {
   # Read and parse the XML file
   xml_data <- read_xml(xml_file)
   
-  # # Extract relevant data (this part may vary depending on the structure of your XML)
+  # # Extract relevant data
   trial_ids <- xml_find_all(xml_data, ".//TrialID") %>% xml_text()
   scientific_titles <- xml_find_all(xml_data, ".//Scientific_title") %>% xml_text()
   date_reg3 <- xml_find_all(xml_data, ".//Date_registration3") %>% xml_text()
@@ -17,19 +17,15 @@ xml_to_ris <- function(xml_file, ris_file) {
   source_registers <- xml_find_all(xml_data, ".//Source_Register") %>% xml_text()
   primary_sponsors <- xml_find_all(xml_data, ".//Primary_sponsor") %>% xml_text()
   
-
-  # Concatenate TrialID and Scientific_title
-  titles <- paste(trial_ids, scientific_titles, sep = " - ")
-  
   
   # Open a connection to the RIS file
   ris_conn <- file(ris_file, "w")
   
   
   # Write data in RIS format
-  for (i in seq_along(titles)) {
+  for (i in seq_along(scientific_titles)) {
     cat("TY  - ELEC\n", file = ris_conn)
-    cat("TI  - ", titles[i], "\n", file = ris_conn)
+    cat("TI  - ", scientific_titles[i], "\n", file = ris_conn)
     
     # Add the primary sponsor as the author
     if (i <= length(primary_sponsors) && primary_sponsors[i] != "") {
@@ -53,6 +49,11 @@ xml_to_ris <- function(xml_file, ris_file) {
       cat("PB  - ", source_registers[i], "\n", file = ris_conn)
     }
     
+    # Add trial ID as website title
+    if (i <= length(trial_ids)) {
+      cat("T2  - ", trial_ids[i], "\n", file = ris_conn)
+    }
+    
     cat("ER  - \n\n", file = ris_conn)
   }
   
@@ -61,7 +62,7 @@ xml_to_ris <- function(xml_file, ris_file) {
 }
 
 # Example usage
-xml_file <- "ICTRP-Results(1).xml"
+xml_file <- "ICTRP-Results.xml"
 ris_file <- "output_file.ris"
 xml_to_ris(xml_file, ris_file)
 
